@@ -27,7 +27,7 @@ This POE is built incrementally across three parts:
 2. Part 2 — Full-stack application development (React frontend + MongoDB Atlas)
 3. Part 3 — DevSecOps, monitoring, and finalisation (containerisation, CI/CD, security scans)
 
-Part 1 focuses **only** on the foundation: a secure Node.js/Express API that supports user registration and authentication. There is no database and no frontend yet — those are intentionally deferred to Part 2, per the brief. User data for this part is stored using **file-based JSON storage**.
+Part 1 focuses only on the foundation: a secure Node.js/Express API that supports user registration and authentication. There is no database and no frontend yet — those are intentionally deferred to Part 2, per the brief. User data for this part is stored using file-based JSON storage.
 
 ---
 
@@ -48,11 +48,10 @@ Part 1 focuses **only** on the foundation: a secure Node.js/Express API that sup
 
 ### System boundary
 
-Everything inside the server (Express app, middleware, security utilities, and the file-based data store) sits behind a single trust boundary. The **only** thing allowed to cross that boundary from the outside is HTTPS traffic on the defined API surface (`/api/auth/*`, `/api/health`). No internal file paths, stack traces, or configuration values are ever returned across that boundary.
+Everything inside the server (Express app, middleware, security utilities, and the file-based data store) sits behind a single trust boundary. The only thing allowed to cross that boundary from the outside is HTTPS traffic on the defined API surface. No internal file paths, stack traces, or configuration values are ever returned across that boundary.
 
 ### Folder structure
 
-```
 hustlehub-backend/
 ├── app.js                      # Express app: middleware + route wiring
 ├── server.js                   # HTTPS entry point (reads SSL cert/key, starts listener)
@@ -80,31 +79,29 @@ hustlehub-backend/
 ├── .env.example
 ├── .gitignore
 └── package.json
-```
 
----
 
 ## 3. Security Decisions
 
-This section explains **what** was implemented and **why**, as required by the assessment brief.
+This section explains what was implemented and why, as required by the assessment brief.
 
 ### 3.1 Password hashing
 
-- Passwords are **never** stored, logged, or returned in plain text, anywhere in the system.
-- We use **bcrypt** (`bcryptjs`) with a work factor (salt rounds) of **12** to hash passwords before they are written to storage.
-- Bcrypt is deliberately slow and includes a random salt per password, which makes both rainbow-table attacks and brute-force attacks computationally expensive — unlike fast general-purpose hashes (e.g. plain SHA-256), which are unsuitable for password storage.
+- Passwords are never stored, logged, or returned in plain text, anywhere in the system.
+- We use bcrypt with a work factor of 12 to hash passwords before they are written to storage.
+- Bcrypt is deliberately slow and includes a random salt per password, which makes both rainbow-table attacks and brute-force attacks computationally expensive — unlike fast general-purpose hashes, which are unsuitable for password storage.
 - On login, the submitted password is compared against the stored hash using `bcrypt.compare()`. The plain password is never decrypted back out of the hash — hashing is one-way by design.
 
 ### 3.2 Token-based authentication (JWT)
 
-- On successful login, the server issues a **JSON Web Token** signed with a secret key (`JWT_SECRET`, loaded from an environment variable — never hard-coded).
-- The token payload intentionally contains only **non-sensitive** identifying information: `id`, `username`, and `role`. It never contains the password (hashed or otherwise), because a JWT's payload is base64-encoded, not encrypted — anyone holding the token can decode and read it.
+- On successful login, the server issues a JSON Web Token signed with a secret key (`JWT_SECRET`, loaded from an environment variable — never hard-coded).
+- The token payload intentionally contains only non-sensitive identifying information: `id`, `username`, and `role`. It never contains the password (hashed or otherwise), because a JWT's payload is base64-encoded, not encrypted — anyone holding the token can decode and read it.
 - Tokens expire after a configurable window (`JWT_EXPIRES_IN`, default `1h`), limiting the damage window if a token is ever leaked.
-- Protected routes (e.g. `GET /api/auth/profile`) require the token to be sent as `Authorization: Bearer <token>`. The `protect` middleware verifies the token's **signature and expiry on every single request** — a token is never trusted just because it was accepted once. Requests with a missing, malformed, expired, or tampered token are rejected with `401` before reaching any controller logic.
+- Protected routes (e.g. `GET /api/auth/profile`) require the token to be sent as `Authorization: Bearer <token>`. The `protect` middleware verifies the token's signature and expiry on every single request — a token is never trusted just because it was accepted once. Requests with a missing, malformed, expired, or tampered token are rejected with `401` before reaching any controller logic.
 
 ### 3.3 Input validation & sanitisation
 
-- Every field submitted to `/register` and `/login` is validated using **express-validator** *before* it reaches the controller:
+- Every field submitted to `/register` and `/login` is validated using express-validator  before it reaches the controller:
   - Usernames: required, 3–30 characters, alphanumeric + underscore only, HTML-escaped.
   - Emails: required, must be valid email format, normalised.
   - Passwords: minimum 8 characters, must include upper-case, lower-case, a number, and a special character.
@@ -113,8 +110,8 @@ This section explains **what** was implemented and **why**, as required by the a
 
 ### 3.4 HTTPS
 
-- The API is served over **HTTPS**, using Node's built-in `https` module wrapping the Express app, with a **locally generated self-signed SSL certificate** (see [Section 5](#5-setup--installation)).
-- HTTPS matters here because the API transmits **credentials** (email + password) and **JWTs** in every request. Without TLS, this data would travel in plain text and could be trivially intercepted on any shared network (a classic man-in-the-middle attack). Encrypting the transport layer protects both the login payload and the bearer token from being sniffed in transit.
+- The API is served over HTTPS, using Node's built-in `https` module wrapping the Express app, with a locally generated self-signed SSL certificate (see [Section 5](#5-setup--installation)).
+- HTTPS matters here because the API transmits credentials (email + password) and JWTs in every request. Without TLS, this data would travel in plain text and could be trivially intercepted on any shared network (a classic man-in-the-middle attack). Encrypting the transport layer protects both the login payload and the bearer token from being sniffed in transit.
 - In production, this self-signed certificate would be replaced with one issued by a trusted Certificate Authority (e.g. via Let's Encrypt), but the underlying mechanism (Node `https.createServer`) stays the same.
 
 ### 3.5 Secure error handling
