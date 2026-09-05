@@ -33,20 +33,19 @@ Part 1 focuses **only** on the foundation: a secure Node.js/Express API that sup
 
 ## 2. Architecture
 
-![HustleHub+ Architecture Diagram](docs/architecture-diagram.svg)
+![HustleHub+ Architecture Diagram](HustleHub+ System Architecture.drawio.png )
 
-*(Diagram source: `docs/architecture-diagram.svg`. Green = implemented now, grey/dashed = planned for Part 2. The diagram shows two explicit trust boundaries — the Client Boundary and the Server Trust Boundary — and traces both the success path and the two failure paths (validation failure, invalid/expired JWT) through the Central Error Handler.)*
 
 ### Request flow
 
-1. A client (browser or Postman) sends a request over **HTTPS**.
-2. The request passes through **Helmet** (secure HTTP headers) and **CORS**.
-3. **express-validator** middleware validates and sanitises the request body. Invalid requests are rejected with `400` before touching any business logic.
-4. A **rate limiter** slows down repeated register/login attempts from the same IP.
-5. For protected routes, **JWT middleware** verifies the token's signature and expiry before the request is allowed through.
-6. The **controller** contains the actual business logic (checking for duplicate users, hashing passwords, comparing hashes, issuing tokens).
-7. The **model** layer reads/writes `data/users.json` — this is the only part of the codebase that touches the filesystem, which keeps the storage mechanism swappable for MongoDB in Part 2.
-8. Any error, anywhere in the pipeline, is funnelled to a single **centralised error handler** that returns a safe, generic message to the client while logging full details server-side.
+1. A client (browser or Postman) sends a request over HTTPS.
+2. The request passes through Helmet (secure HTTP headers) and CORS.
+3. express-validator middleware validates and sanitises the request body. Invalid requests are rejected with `400` before touching any business logic.
+4. A rate limiter slows down repeated register/login attempts from the same IP.
+5. For protected routes, JWT middleware verifies the token's signature and expiry before the request is allowed through.
+6. The controller contains the actual business logic (checking for duplicate users, hashing passwords, comparing hashes, issuing tokens).
+7. The model layer reads/writes `data/users.json` — this is the only part of the codebase that touches the filesystem, which keeps the storage mechanism swappable for MongoDB in Part 2.
+8. Any error, anywhere in the pipeline, is funnelled to a single centralised error handler that returns a safe, generic message to the client while logging full details server-side.
 
 ### System boundary
 
