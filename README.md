@@ -32,8 +32,7 @@ Part 1 focuses **only** on the foundation: a secure Node.js/Express API that sup
 ---
 
 ## 2. Architecture
-
-![HustleHub+ Architecture Diagram](HustleHub+ System Architecture.drawio.png )
+HustleHub+ System Architecture.drawio.png 
 
 
 ### Request flow
