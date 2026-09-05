@@ -52,6 +52,7 @@ Everything inside the server (Express app, middleware, security utilities, and t
 
 ### Folder structure
 
+```
 hustlehub-backend/
 ├── app.js                      # Express app: middleware + route wiring
 ├── server.js                   # HTTPS entry point (reads SSL cert/key, starts listener)
@@ -79,8 +80,7 @@ hustlehub-backend/
 ├── .env.example
 ├── .gitignore
 └── package.json
-
-
+```
 ## 3. Security Decisions
 
 This section explains what was implemented and why, as required by the assessment brief.
