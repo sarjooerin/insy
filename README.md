@@ -117,9 +117,9 @@ This section explains what was implemented and why, as required by the assessmen
 ### 3.5 Secure error handling
 
 - All errors — validation failures, authentication failures, unexpected exceptions — are funnelled through a single centralised error handler (`middleware/errorMiddleware.js`).
-- The **client** always receives a short, generic, safe message (e.g. `"Invalid email or password."` or `"An unexpected error occurred. Please try again later."`).
-- The **server log** (`logs/events.log` + console) receives the full detail, including the stack trace, so the issue can still be diagnosed — but that detail never leaves the server.
-- Login intentionally returns the **same** generic message ("Invalid email or password") whether the email doesn't exist or the password is wrong, to prevent **user enumeration** — an attacker being able to work out which emails are registered by observing different error messages.
+- The client always receives a short, generic, safe message (e.g. `"Invalid email or password."` or `"An unexpected error occurred. Please try again later."`).
+- The server log (`logs/events.log` + console) receives the full detail, including the stack trace, so the issue can still be diagnosed — but that detail never leaves the server.
+- Login intentionally returns the same generic message ("Invalid email or password") whether the email doesn't exist or the password is wrong, to prevent user enumeration — an attacker being able to work out which emails are registered by observing different error messages.
 
 ### 3.6 Additional defence-in-depth measures
 
@@ -141,7 +141,7 @@ Base URL (local): `https://localhost:5000`
 | GET | `/api/health` | No | Basic liveness check |
 | POST | `/api/auth/register` | No | Register a new user |
 | POST | `/api/auth/login` | No | Log in and receive a JWT |
-| GET | `/api/auth/profile` | **Yes** (Bearer token) | Returns the logged-in user's own profile |
+| GET | `/api/auth/profile` | Yes (Bearer token) | Returns the logged-in user's own profile |
 
 ### POST `/api/auth/register`
 
@@ -229,21 +229,21 @@ npm run dev
 # HustleHub+ backend listening securely on https://localhost:5000 (development)
 ```
 
-Because the certificate is self-signed, your browser/Postman/curl will show a security warning — this is expected for local development. In Postman, disable **SSL certificate verification** in Settings, or use the `-k` flag with curl.
+Because the certificate is self-signed, your browser/Postman/curl will show a security warning — this is expected for local development. In Postman, disable SSL certificate verification in Settings, or use the `-k` flag with curl.
 
 ---
 
 ## 6. Testing with Postman
 
 1. Import `postman/HustleHub-Part1.postman_collection.json` into Postman.
-2. In Postman **Settings → General**, turn **off** "SSL certificate verification" (required for the local self-signed cert).
-3. Run the requests **in order** (01 → 13). The collection is designed to be run top-to-bottom:
+2. In Postman Settings → General, turn off "SSL certificate verification" (required for the local self-signed cert).
+3. Run the requests in order (01 → 13). The collection is designed to be run top-to-bottom:
    - Requests 02–06 exercise registration (success, duplicate email, weak password, bad email format, missing fields).
-   - Request 07 logs in and **automatically stores the JWT** into a collection variable (`{{token}}`).
+   - Request 07 logs in and automatically stores the JWT into a collection variable (`{{token}}`).
    - Requests 08–09 test invalid login scenarios.
    - Requests 10–12 test the protected `/profile` route with no token, a valid token, and an invalid token.
    - Request 13 confirms unknown routes return a clean `404` with no stack trace.
-4. Each request has an automated Postman test script attached (visible in the **Tests** tab) that asserts the expected status code.
+4. Each request has an automated Postman test script attached (visible in the Tests tab) that asserts the expected status code.
 
 Screenshots of these requests/responses, taken from Postman, are included in `/docs` (or attached separately per your submission format) as required by the brief.
 
@@ -251,34 +251,17 @@ Screenshots of these requests/responses, taken from Postman, are included in `/d
 
 ## 7. Demonstration Video
 
-A short screen recording accompanies this submission, showing:
-1. The server starting up over HTTPS (`npm run dev`).
-2. A successful registration request in Postman.
-3. A successful login request, showing the JWT returned.
-4. A request to the protected `/profile` route using that token.
-5. A rejected request to `/profile` with no token (401).
-
 **Video link:** _add your link here once recorded (e.g. YouTube unlisted / OneDrive / Google Drive share link)._
 
 ---
 
 ## 8. Limitations of this part (by design) & what's next
 
-Per the brief, Part 1 deliberately does **not** yet include:
+Per the brief, Part 1 deliberately does not yet include:
 - A real database (MongoDB Atlas is introduced in Part 2 — the file-based `userModel.js` is structured so it can be swapped for a Mongoose model with minimal changes elsewhere).
 - A frontend (React, introduced in Part 2).
 - Role-based access control beyond storing a `role` on the JWT payload (full RBAC across Client/Freelancer/Admin routes is a Part 2 concern).
 - Gigs, bookings, transactions, income tracking, or tax calculations (Part 2/3 features).
 
-These are intentionally out of scope for Part 1's "secure foundations" focus but the architecture (JWT payload already carrying `role`, a `requireRole()` helper already stubbed in `authMiddleware.js`, and a swappable data layer) is designed so that Part 2 can build on top of it without reworking the authentication core.
 
----
 
-## 9. Submission Checklist
-
-- [x] GitHub repository with meaningful commit history
-- [x] This README (architecture, security decisions, setup, API reference)
-- [x] Postman collection (`postman/HustleHub-Part1.postman_collection.json`)
-- [ ] Screenshots of API responses *(add before submitting)*
-- [ ] Demonstration video link *(add before submitting)*
-- [x] Architecture diagram (`docs/architecture-diagram.svg`)
